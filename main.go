@@ -82,6 +82,9 @@ func main() {
 	noCleanCheck := flag.Bool("n", false, "whether to check git repo's cleanliness before proceeding")
 	flag.Parse()
 
+	if ctx.preview {
+		*noCleanCheck = true
+	}
 	ctx.shouldCleanCheck = !*noCleanCheck
 
 	if *help {
@@ -159,6 +162,15 @@ func commitNewVersion(ctx context) {
 }
 
 func printPreview(ctx context) {
+	clean, err := isRepoClean()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if !clean {
+		fmt.Println("git repo isn't clean")
+	}
+
 	fmt.Printf("current version: v%s\n", ctx.oldVersion)
 	fmt.Printf("    new version: v%s\n", ctx.newVersion)
 }
