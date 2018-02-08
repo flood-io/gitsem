@@ -15,24 +15,43 @@ func runCommand(command ...string) error {
 	return nil
 }
 
-func isRepoClean() (bool, error) {
-	cmd := exec.Command("git", "status", "--porcelain")
-	result := &bytes.Buffer{}
-	cmd.Stdout = result
+func runCommandStdout(command ...string) (string, error) {
+	cmd := exec.Command(command[0], command[1:]...)
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
+
 	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("failed to run command: %s\nstderr:\n%s\nstdout:\n%s", err, stderr, stdout)
+	}
+	return stdout.String(), nil
+}
+
+func runCommandTrimmed(command ...string) (string, error) {
+	output, err := runCommandStdout(command...)
+
+	return strings.TrimSpace(output), err
+}
+
+func isRepoClean() (bool, error) {
+	result, err := runCommandTrimmed("git", "status", "--porcelain")
+	if err != nil {
 		return false, err
 	}
-	return result.String() == "", nil
+	return result == "", nil
 }
 
 func repoRoot() (string, error) {
-	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
-	result := &bytes.Buffer{}
-	cmd.Stdout = result
-	if err := cmd.Run(); err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(result.String()), nil
+	return runCommandTrimmed("git", "rev-parse", "--show-toplevel")
+}
+
+func sha() (string, error) {
+	return runCommandTrimmed("git", "rev-parse", "HEAD")
+}
+
+func resetSHA(sha string) error {
+	return runCommand("git", "reset", "--hard", sha)
 }
 
 func addFile(path string) error {
