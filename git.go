@@ -2,9 +2,18 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"os/exec"
 	"strings"
 )
+
+func runCommand(command ...string) error {
+	cmd := exec.Command(command[0], command[1:]...)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("failed to run command: %s\noutput:\n%s", err, output)
+	}
+	return nil
+}
 
 func isRepoClean() (bool, error) {
 	cmd := exec.Command("git", "status", "--porcelain")
@@ -27,13 +36,13 @@ func repoRoot() (string, error) {
 }
 
 func addFile(path string) error {
-	return exec.Command("git", "add", path).Run()
+	return runCommand("git", "add", path)
 }
 
 func commit(message string) error {
-	return exec.Command("git", "commit", "-m", message).Run()
+	return runCommand("git", "commit", "-m", message)
 }
 
 func tag(version string) error {
-	return exec.Command("git", "tag", version).Run()
+	return runCommand("git", "tag", version)
 }
