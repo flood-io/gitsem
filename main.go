@@ -102,12 +102,12 @@ func main() {
 
 	root, err := repoRoot()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("unable to find git repo root: %+v", err)
 	}
 
 	if ctx.shouldCleanCheck {
 		if clean, err := isRepoClean(); err != nil {
-			log.Fatal(err)
+			log.Fatalf("unable to determine git repo clean status: %+v", err)
 		} else if !clean {
 			log.Fatal("repo isn't clean")
 		}
@@ -116,7 +116,7 @@ func main() {
 	ctx.versionFile = filepath.Join(root, versionFileName)
 	version, err := getCurrentVersion(ctx.versionFile)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("unable to get current version: %+v", err)
 	}
 	ctx.oldVersion = version
 
@@ -143,19 +143,19 @@ func main() {
 
 func commitNewVersion(ctx context) {
 	if err := ioutil.WriteFile(ctx.versionFile, []byte(ctx.newVersion.String()), 0666); err != nil {
-		log.Fatal(err)
+		log.Fatalf("unable to write version file: %+v", err)
 	}
 	if err := addFile(ctx.versionFile); err != nil {
-		log.Fatal(err)
+		log.Fatalf("unable to git add version file: %+v", err)
 	}
 	versionString := "v" + ctx.newVersion.String()
 	message := commitMessage(ctx.message, versionString)
 	if err := commit(message); err != nil {
-		log.Fatal(err)
+		log.Fatalf("unable to git commit updated version: %+v", err)
 	}
 	if ctx.shouldTag {
 		if err := tag(versionString); err != nil {
-			log.Fatal(err)
+			log.Fatalf("unable to git tag updated version: %+v", err)
 		}
 	}
 	fmt.Println(versionString)
@@ -164,7 +164,7 @@ func commitNewVersion(ctx context) {
 func printPreview(ctx context) {
 	clean, err := isRepoClean()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("unable to determine git repo clean status: %+v", err)
 	}
 
 	if !clean {
