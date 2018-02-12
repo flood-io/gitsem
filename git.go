@@ -35,7 +35,7 @@ func runCommandTrimmed(command ...string) (string, error) {
 }
 
 func isRepoClean() (bool, error) {
-	result, err := runCommandTrimmed("git", "status", "--porcelain")
+	result, err := runCommandTrimmed("git", "status", "--porcelain", "--untracked-files=no")
 	if err != nil {
 		return false, err
 	}
